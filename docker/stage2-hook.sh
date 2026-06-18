@@ -394,14 +394,13 @@ if [ -d "$INSTALL_DIR/skills" ]; then
         || echo "[stage2] Warning: skills_sync.py failed; continuing"
 fi
 
-# --- Discover agent-browser's Chromium binary ---
-# The image's Dockerfile runs `npx playwright install chromium`, which
-# populates ``$PLAYWRIGHT_BROWSERS_PATH`` (=/opt/hermes/.playwright) with
-# a ``chromium_headless_shell-<build>/chrome-headless-shell-linux64/``
-# directory. agent-browser (the runtime CLI Hermes spawns for the
-# browser tool) doesn't recognise this layout in its own cache scan and
-# fails with "Auto-launch failed: Chrome not found" — even though the
-# binary is right there (#15697).
+# --- Discover the bundled browser binary for agent-browser ---
+# The image's Dockerfile downloads a fixed CloakBrowser tarball into
+# ``$CLOAKBROWSER_ROOT`` (=/opt/hermes/.cloakbrowser). agent-browser
+# expects either a system browser on PATH or ``AGENT_BROWSER_EXECUTABLE_PATH``
+# pointing at a compatible Chromium-family executable, so we locate the
+# extracted binary at boot and export that env var for all supervised
+# services.
 #
 # Fix: locate the binary at boot and export ``AGENT_BROWSER_EXECUTABLE_PATH``
 # via /run/s6/container_environment so the `with-contenv` shebang on
@@ -410,21 +409,16 @@ fi
 #
 # - Skipped when the user has already set ``AGENT_BROWSER_EXECUTABLE_PATH``
 #   (lets users override with a system Chrome install).
-# - Filename-matched (not path-matched): the chromium dir contains many
-#   shared libraries (libGLESv2.so, libEGL.so, ...) which inherit the
-#   executable bit from Playwright's tarball but are NOT browser binaries.
-#   We only accept files whose basename is chrome / chromium /
-#   chrome-headless-shell / headless_shell / chromium-browser. Compare
-#   PR #18635's earlier ``find | grep -Ei 'chrome|chromium'`` which would
-#   match the path ``.../chrome-headless-shell-linux64/libGLESv2.so`` and
-#   pick a .so.
-# - Quietly skipped when $PLAYWRIGHT_BROWSERS_PATH doesn't exist (e.g.
-#   custom builds that strip Playwright).
+# - Filename-matched (not path-matched): the extracted tree may contain
+#   executable helper binaries and shared libraries, so we only accept
+#   known browser basenames.
+# - Quietly skipped when $CLOAKBROWSER_ROOT doesn't exist (e.g. custom
+#   builds that strip the bundled browser).
 if [ -z "${AGENT_BROWSER_EXECUTABLE_PATH:-}" ] && \
-        [ -n "${PLAYWRIGHT_BROWSERS_PATH:-}" ] && \
-        [ -d "$PLAYWRIGHT_BROWSERS_PATH" ]; then
-    browser_bin=$(find "$PLAYWRIGHT_BROWSERS_PATH" -type f -executable \
-        \( -name 'chrome' -o -name 'chromium' \
+        [ -n "${CLOAKBROWSER_ROOT:-}" ] && \
+        [ -d "$CLOAKBROWSER_ROOT" ]; then
+    browser_bin=$(find "$CLOAKBROWSER_ROOT" -type f -executable \
+        \( -name 'cloakbrowser' -o -name 'chrome' -o -name 'chromium' \
            -o -name 'chrome-headless-shell' -o -name 'headless_shell' \
            -o -name 'chromium-browser' \) \
         2>/dev/null | head -n 1)
@@ -438,7 +432,7 @@ if [ -z "${AGENT_BROWSER_EXECUTABLE_PATH:-}" ] && \
         mkdir -p /run/s6/container_environment
         printf '%s' "$browser_bin" > /run/s6/container_environment/AGENT_BROWSER_EXECUTABLE_PATH
     else
-        echo "[stage2] Warning: no Chromium binary under $PLAYWRIGHT_BROWSERS_PATH; browser tool may fail"
+        echo "[stage2] Warning: no browser binary under $CLOAKBROWSER_ROOT; browser tool may fail"
     fi
 fi
 
