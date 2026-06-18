@@ -32,13 +32,13 @@ RUN set -eu; \
     mkdir -p /etc/apt/sources.list.d; \
     printf '%s\n' \
         'Types: deb' \
-        'URIs: https://mirrors.tuna.tsinghua.edu.cn/debian' \
+        'URIs: http://mirrors.ustc.edu.cn/debian' \
         'Suites: trixie trixie-updates' \
         'Components: main' \
         'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
         '' \
         'Types: deb' \
-        'URIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security' \
+        'URIs: http://mirrors.ustc.edu.cn/debian-security' \
         'Suites: trixie-security' \
         'Components: main' \
         'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
