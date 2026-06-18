@@ -244,7 +244,7 @@ Before the s6 migration, "one container per profile" was the recommended pattern
 
 | | One container, many profiles | One container per profile |
 |---|---|---|
-| Disk overhead | One image, one bundled venv, one Playwright cache | N images / N caches |
+| Disk overhead | One image, one bundled venv, one bundled browser cache | N images / N caches |
 | Memory overhead | Shared Python interpreter cache, shared node_modules | Duplicated per container |
 | Profile creation | `docker exec ... hermes profile create <name>` (seconds) | New `docker run` invocation + port allocation + bind-mount config |
 | Per-profile crash recovery | `s6-supervise` auto-restart | Docker's `--restart unless-stopped` (slower, kills sibling work) |
@@ -442,7 +442,7 @@ The Hermes container needs moderate resources. Recommended minimums:
 | CPU | 1 core | 2 cores |
 | Disk (data volume) | 500 MB | 2+ GB (grows with sessions/skills) |
 
-Browser automation (Playwright/Chromium) is the most memory-hungry feature. If you don't need browser tools, 1 GB is sufficient. With browser tools active, allocate at least 2 GB.
+Browser automation (CloakBrowser/Chromium) is the most memory-hungry feature. If you don't need browser tools, 1 GB is sufficient. With browser tools active, allocate at least 2 GB.
 
 Set limits in Docker:
 
@@ -461,7 +461,7 @@ The official image is based on `debian:13.4` and includes:
 
 - Python 3 with all Hermes dependencies (`uv pip install -e ".[all]"`)
 - Node.js + npm (for browser automation and WhatsApp bridge)
-- Playwright with Chromium (`npx playwright install --with-deps chromium --only-shell`)
+- CloakBrowser Chromium bundle (downloaded at build time from the CloakHQ release mirror)
 - ripgrep, ffmpeg, git, and `xz-utils` as system utilities
 - **`docker-cli`** — so agents running inside the container can drive the host's Docker daemon (bind-mount `/var/run/docker.sock` to opt in) for `docker build`, `docker run`, container inspection, etc.
 - **`openssh-client`** — enables the [SSH terminal backend](/user-guide/configuration#ssh-backend) from inside the container. The SSH backend shells out to the system `ssh` binary; without this, it failed silently in containerized installs.
@@ -788,7 +788,7 @@ docker run -d \
 
 ### Browser tools not working
 
-Playwright needs shared memory. Add `--shm-size=1g` to your Docker run command:
+Chromium needs shared memory. Add `--shm-size=1g` to your Docker run command:
 
 ```sh
 docker run -d \
