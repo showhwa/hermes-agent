@@ -18,6 +18,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Store the bundled CloakBrowser outside the volume mount so the build-time
 # install survives the /opt/data volume overlay at runtime.
 ENV CLOAKBROWSER_ROOT=/opt/hermes/.cloakbrowser
+ENV AGENT_BROWSER_EXECUTABLE_PATH=/opt/hermes/.cloakbrowser/chrome
 
 # Install system dependencies in one layer, clear APT cache.
 # Use a domestic Debian mirror for faster package downloads during builds.
