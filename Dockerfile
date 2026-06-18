@@ -149,6 +149,9 @@ COPY ui-tui/packages/hermes-ink/ ui-tui/packages/hermes-ink/
 # runtime `npm install` that then failed with EACCES.  Keeping the env
 # guards against a future regression if the source npm version changes.
 ENV npm_config_install_links=false
+ENV npm_config_registry=https://registry.npmmirror.com
+ENV UV_DEFAULT_INDEX=https://mirrors.ustc.edu.cn/pypi/simple
+ENV UV_INDEX=https://mirrors.ustc.edu.cn/pypi/simple
 
 RUN npm install --prefer-offline --no-audit && \
     mkdir -p "$CLOAKBROWSER_ROOT" && \
