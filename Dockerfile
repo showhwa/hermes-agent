@@ -15,9 +15,9 @@ FROM debian:13.4
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Store Playwright browsers outside the volume mount so the build-time
+# Store the bundled CloakBrowser outside the volume mount so the build-time
 # install survives the /opt/data volume overlay at runtime.
-ENV PLAYWRIGHT_BROWSERS_PATH=/opt/hermes/.playwright
+ENV CLOAKBROWSER_ROOT=/opt/hermes/.cloakbrowser
 
 # Install system dependencies in one layer, clear APT cache.
 # tini was previously PID 1 to reap orphaned zombie processes (MCP stdio
@@ -108,7 +108,7 @@ RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && 
 WORKDIR /opt/hermes
 
 # ---------- Layer-cached dependency install ----------
-# Copy only package manifests first so npm install + Playwright are cached
+# Copy only package manifests first so npm install + CloakBrowser are cached
 # unless the lockfiles themselves change.
 #
 # ui-tui/packages/hermes-ink/ is copied IN FULL (not just its manifests)
@@ -133,7 +133,12 @@ COPY ui-tui/packages/hermes-ink/ ui-tui/packages/hermes-ink/
 ENV npm_config_install_links=false
 
 RUN npm install --prefer-offline --no-audit && \
-    npx playwright install --with-deps chromium --only-shell && \
+    mkdir -p "$CLOAKBROWSER_ROOT" && \
+    curl -fsSL --retry 3 \
+        "https://ghfast.top/https://github.com/CloakHQ/cloakbrowser/releases/download/chromium-v146.0.7680.177.5/cloakbrowser-linux-x64.tar.gz" \
+        -o /tmp/cloakbrowser-linux-x64.tar.gz && \
+    tar -xzf /tmp/cloakbrowser-linux-x64.tar.gz -C "$CLOAKBROWSER_ROOT" && \
+    rm -f /tmp/cloakbrowser-linux-x64.tar.gz && \
     npm cache clean --force
 
 # ---------- Layer-cached Python dependency install ----------
