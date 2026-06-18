@@ -30,19 +30,19 @@ ENV CLOAKBROWSER_ROOT=/opt/hermes/.cloakbrowser
 RUN set -eu; \
     rm -f /etc/apt/sources.list; \
     mkdir -p /etc/apt/sources.list.d; \
-    cat > /etc/apt/sources.list.d/debian.sources <<'EOF' \
-Types: deb
-URIs: https://mirrors.tuna.tsinghua.edu.cn/debian
-Suites: trixie trixie-updates
-Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-
-Types: deb
-URIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security
-Suites: trixie-security
-Components: main
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
-EOF
+    printf '%s\n' \
+        'Types: deb' \
+        'URIs: https://mirrors.tuna.tsinghua.edu.cn/debian' \
+        'Suites: trixie trixie-updates' \
+        'Components: main' \
+        'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
+        '' \
+        'Types: deb' \
+        'URIs: https://mirrors.tuna.tsinghua.edu.cn/debian-security' \
+        'Suites: trixie-security' \
+        'Components: main' \
+        'Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg' \
+        > /etc/apt/sources.list.d/debian.sources; \
     apt-get update && \
     apt-get install -y --no-install-recommends \
     ca-certificates curl iputils-ping python3 python-is-python3 ripgrep ffmpeg gcc g++ make cmake python3-dev python3-venv libffi-dev libolm-dev procps git openssh-client docker-cli xz-utils && \
