@@ -45,7 +45,8 @@ RUN set -eu; \
         > /etc/apt/sources.list.d/debian.sources; \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-    ca-certificates curl iputils-ping python3 python-is-python3 ripgrep ffmpeg gcc g++ make cmake python3-dev python3-venv libffi-dev libolm-dev procps git openssh-client docker-cli xz-utils && \
+    ca-certificates curl iputils-ping python3 python-is-python3 ripgrep ffmpeg gcc g++ make cmake python3-dev python3-venv libffi-dev libolm-dev procps git openssh-client docker-cli xz-utils \
+    libnspr4 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libatspi2.0-0 libxcomposite1 libxdamage1 && \
     rm -rf /var/lib/apt/lists/*
 
 # ---------- s6-overlay install ----------
